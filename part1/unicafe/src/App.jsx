@@ -3,21 +3,24 @@ import React, { useState } from "react";
 const Button = ({ btnName, onClick }) => {
   return <button onClick={onClick}>{btnName}</button>;
 };
+
+const Statistics = ({ label, value }) => {
+  return (
+    <tr>
+      <td>{value === 0 ? null : label}</td>
+      <td>{value === 0 ? null : value}</td>
+    </tr>
+  );
+};
+
 const App = () => {
   const [good, setGood] = useState(0);
   const [neutral, setNeutral] = useState(0);
   const [bad, setBad] = useState(0);
 
-  const positiveFeedback = () => {
-    const total = good + bad + neutral;
-    const positive = (good / total) * 100;
-    return positive;
-  };
-  const averageFeedback = () => {
-    const total = good + bad + neutral;
-    const average = (bad / total) * 100;
-    return average;
-  };
+  const total = good + neutral + bad;
+  const positive = total === 0 ? 0 : (good / total) * 100;
+  const average = total === 0 ? 0 : (bad / total) * 100;
 
   return (
     <>
@@ -26,12 +29,21 @@ const App = () => {
       <Button btnName={"neutral"} onClick={() => setNeutral(neutral + 1)} />
       <Button btnName={"bad"} onClick={() => setBad(bad + 1)} />
       <h2>statistics</h2>
-      <p>good {good}</p>
-      <p>natural {neutral}</p>
-      <p>bad {bad}</p>
-      <p>all {good + neutral + bad}</p>
-      <p>average {neutral === 0 ? 0 : `${averageFeedback()}%`} </p>
-      <p>positive {good === 0 ? 0 : `${positiveFeedback()}%`}</p>
+      <table>
+        <tbody>
+          <Statistics label="good" value={good} />
+          <Statistics label="neutral" value={neutral} />
+          <Statistics label="bad" value={bad} />
+          {total === 0 ? (
+            <Statistics label="" value="no feedback given" />
+          ) : (
+            <Statistics label="all" value={total} />
+          )}
+
+          <Statistics label="average" value={average} />
+          <Statistics label="positive" value={positive} />
+        </tbody>
+      </table>
     </>
   );
 };
