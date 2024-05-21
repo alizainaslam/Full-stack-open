@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
 import Filter from "./components/Filter";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456", id: 1 },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [filterPerson, setFilterPerson] = useState("");
 
   const addPerson = (newPerson) => {
@@ -16,6 +15,18 @@ const App = () => {
   const filteredPersons = persons.filter((person) =>
     person.name.toLowerCase().includes(filterPerson.toLowerCase())
   );
+  useEffect(() => {
+    console.log("effect");
+    axios
+      .get("http://localhost:3001/persons")
+      .then((response) => {
+        setPersons(response.data);
+      })
+      .catch((error) => {
+        console.error("Something went wrong", error);
+      });
+    console.log("promise filled");
+  }, []);
 
   return (
     <div>
