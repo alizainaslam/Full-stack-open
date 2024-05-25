@@ -8,24 +8,23 @@ const App = () => {
   const [persons, setPersons] = useState([]);
   const [filterPerson, setFilterPerson] = useState("");
 
-  const addPerson = (newPerson) => {
-    setPersons([...persons, newPerson]);
+  const addPerson = (newPersons) => {
+    setPersons(newPersons);
   };
 
   const filteredPersons = persons.filter((person) =>
     person.name.toLowerCase().includes(filterPerson.toLowerCase())
   );
+
   useEffect(() => {
-    console.log("effect");
     axios
       .get("http://localhost:3001/persons")
       .then((response) => {
         setPersons(response.data);
       })
       .catch((error) => {
-        console.error("Something went wrong", error);
+        console.error("Error fetching data:", error);
       });
-    console.log("promise filled");
   }, []);
 
   return (
@@ -35,7 +34,11 @@ const App = () => {
       <h3>Add a new</h3>
       <PersonForm persons={persons} addPerson={addPerson} />
       <h2>Numbers</h2>
-      <Persons personsToShow={filteredPersons} />
+      {filteredPersons.length > 0 ? (
+        <Persons personsToShow={filteredPersons} setPersons={setPersons} />
+      ) : (
+        <p>No persons found</p>
+      )}
     </div>
   );
 };

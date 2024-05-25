@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Input from "./Input";
+import axios from "axios";
 
 const PersonForm = ({ persons, addPerson }) => {
   const [newName, setNewName] = useState("");
@@ -7,18 +8,47 @@ const PersonForm = ({ persons, addPerson }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const existPerson = persons.some((person) => person.name === newName);
+    const existingPerson = persons.find((person) => person.name === newName);
 
-    const newPerson = {
-      name: newName,
-      number: newNumber,
-      id: persons.length + 1,
-    };
+    if (existingPerson) {
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one?`
+        )
+      ) {
+        const updatedPerson = { ...existingPerson, number: newNumber };
 
-    if (existPerson) {
-      alert(`${newName} is already added to phonebook`);
+        axios
+          .put(
+            `http://localhost:3001/persons/${existingPerson.id}`,
+            updatedPerson
+          )
+          .then((response) => {
+            addPerson(
+              persons.map((person) =>
+                person.id !== existingPerson.id ? person : response.data
+              )
+            );
+          })
+          .catch((error) => {
+            console.error("Error updating person:", error);
+          });
+      }
     } else {
-      addPerson(newPerson);
+      const newPerson = {
+        name: newName,
+        number: newNumber,
+        id: String(persons.length + 1),
+      };
+
+      axios
+        .post("http://localhost:3001/persons", newPerson)
+        .then((response) => {
+          addPerson(persons.concat(response.data));
+        })
+        .catch((error) => {
+          console.error("Error adding person:", error);
+        });
     }
 
     setNewName("");
@@ -28,10 +58,21 @@ const PersonForm = ({ persons, addPerson }) => {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        name:
-        <Input type="text" onChange={(e) => setNewName(e.target.value)} value={newName} />
         <div>
-          number: <Input type="tel" onChange={(e) => setNewNumber(e.target.value)} value={newNumber} />
+          name:
+          <Input
+            type="text"
+            onChange={(e) => setNewName(e.target.value)}
+            value={newName}
+          />
+        </div>
+        <div>
+          number:
+          <Input
+            type="tel"
+            onChange={(e) => setNewNumber(e.target.value)}
+            value={newNumber}
+          />
         </div>
         <button type="submit">add</button>
       </form>
