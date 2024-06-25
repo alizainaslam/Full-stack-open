@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Input from "./Input";
 import axios from "axios";
 
-const PersonForm = ({ persons, addPerson }) => {
+const PersonForm = ({ persons, addPerson, setNotification }) => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
 
@@ -29,9 +29,17 @@ const PersonForm = ({ persons, addPerson }) => {
                 person.id !== existingPerson.id ? person : response.data
               )
             );
+            setNotification(`${updatedPerson.name}'s number update`);
+            setTimeout(() => {
+              setNotification(null);
+            }, 3500);
           })
           .catch((error) => {
             console.error("Error updating person:", error);
+            setNotification(`Error updating person:", ${error}`);
+            setTimeout(() => {
+              setNotification(null);
+            }, 3500);
           });
       }
     } else {
@@ -45,9 +53,17 @@ const PersonForm = ({ persons, addPerson }) => {
         .post("http://localhost:3001/persons", newPerson)
         .then((response) => {
           addPerson(persons.concat(response.data));
+          setNotification(`${newPerson.name} added`);
+          setTimeout(() => {
+            setNotification(null);
+          }, 3500);
         })
         .catch((error) => {
           console.error("Error adding person:", error);
+          setNotification(`Error adding person:", ${error}`);
+          setTimeout(() => {
+            setNotification(null);
+          }, 3500);
         });
     }
 
