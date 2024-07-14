@@ -4,8 +4,9 @@ const App = () => {
   const [userInput, setUserInput] = useState("");
   const [apiResponse, setApiResponse] = useState([]);
   const [filteredQuery, setFilteredQuery] = useState([]);
+  const [displayInfo, setDisplayInfo] = useState(null);
 
-  // api call
+  // API call
   useEffect(() => {
     const apiCall = async () => {
       try {
@@ -29,6 +30,9 @@ const App = () => {
     const userQuery = e.target.value;
     setUserInput(userQuery);
     handleFilterQuery(userQuery);
+    if (userQuery === "") {
+      setDisplayInfo(null);
+    }
   }
 
   function handleFilterQuery(userQuery) {
@@ -60,34 +64,38 @@ const App = () => {
       {filteredQuery && (
         <ul>
           {filteredQuery.map(
-            ({ cca3, name, capital, area, languages, flags }) => (
+            ({ name, cca3, capital, area, languages, flags }) => (
               <li key={cca3}>
-                {filteredQuery.length === 1 ? (
-                  <div>
-                    <h1>{name.common}</h1>
-                    {capital && area && languages && flags && (
-                      <>
-                        <p>capital {capital}</p>
-                        <p>area {area}</p>
-                        <h3>languages</h3>
-                      </>
-                    )}
-                    {languages && (
-                      <ul>
-                        {Object.values(languages).map((language, index) => (
-                          <li key={index}>{language}</li>
-                        ))}
-                      </ul>
-                    )}
-                    {flags && <img src={Object.values(flags)[0]} alt="" />}
-                  </div>
+                {name.common}{" "}
+                {capital && area && languages && flags ? (
+                  <button
+                    onClick={() =>
+                      setDisplayInfo({ name, capital, area, languages, flags })
+                    }
+                  >
+                    show
+                  </button>
                 ) : (
-                  <p>{name.common}</p>
+                  <p></p>
                 )}
               </li>
             )
           )}
         </ul>
+      )}
+      {displayInfo && (
+        <div key={displayInfo.name.common}>
+          <h1>{displayInfo.name.common}</h1>
+          <p>Capital: {displayInfo.capital}</p>
+          <p>Area: {displayInfo.area}</p>
+          <h3>Languages</h3>
+          <ul>
+            {Object.values(displayInfo.languages).map((language, index) => (
+              <li key={index}>{language}</li>
+            ))}
+          </ul>
+          <img src={Object.values(displayInfo.flags)[0]} alt="flag" />
+        </div>
       )}
     </>
   );
