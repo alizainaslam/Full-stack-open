@@ -1,4 +1,9 @@
 import React, { useEffect, useState } from "react";
+import CountryList from "./components/CountryList";
+import CountryDetail from "./components/CountryDetail";
+import Weather from "./components/Weather";
+import Header from "./components/Header";
+import countryMap from "../assets/country-map.png";
 
 const App = () => {
   const someKey = import.meta.env.VITE_SOME_KEY;
@@ -7,6 +12,7 @@ const App = () => {
   const [apiResponse, setApiResponse] = useState([]);
   const [filteredQuery, setFilteredQuery] = useState([]);
   const [displayInfo, setDisplayInfo] = useState(null);
+  const [weatherInfo, setWeatherInfo] = useState(null);
 
   // Country API call
   useEffect(() => {
@@ -29,48 +35,55 @@ const App = () => {
   }, []);
 
   // Weather API call
-  const fetchWeather = async (userQuery) => {
+  const fetchWeather = async (countryName) => {
     try {
       const weatherResponse = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${userQuery}&APPID=${someKey}`
+        `https://api.openweathermap.org/data/2.5/weather?q=${countryName}&APPID=${someKey}`
       );
       if (!weatherResponse.ok) {
         throw new Error(weatherResponse.status);
       } else {
         const jsonResponse = await weatherResponse.json();
-        const finelTemp = jsonResponse.main.temp;
-        const finelSpeed = jsonResponse.wind.speed;
-        setDisplayInfo((prevInfo) => ({
-          ...prevInfo,
-          temp: finelTemp,
-          wind: finelSpeed,
-        }));
+        const finalTemp = jsonResponse.main.temp;
+        const finalSpeed = jsonResponse.wind.speed;
+        setWeatherInfo({
+          temp: finalTemp,
+          wind: finalSpeed,
+        });
       }
     } catch (error) {
       console.error(error);
     }
   };
 
-  function handleUserInput(e) {
+  useEffect(() => {
+    if (
+      displayInfo &&
+      displayInfo.name &&
+      displayInfo.name.common !== "Too many matches, specify another filter"
+    ) {
+      fetchWeather(displayInfo.name.common);
+    }
+  }, [displayInfo]);
+
+  const handleUserInput = (e) => {
     const userQuery = e.target.value;
     setUserInput(userQuery);
     handleFilterQuery(userQuery);
     if (userQuery === "") {
       setDisplayInfo(null);
+      setWeatherInfo(null);
     }
-    setTimeout(() => {
-      fetchWeather(userQuery);
-    }, 2000);
-  }
+  };
 
-  function handleFilterQuery(userQuery) {
+  const handleFilterQuery = (userQuery) => {
     if (userQuery === "") {
       setFilteredQuery([]);
     } else {
       const filter = apiResponse.filter((filteredItem) =>
         filteredItem.name.common.toLowerCase().includes(userQuery.toLowerCase())
       );
-      if (filter && filter.length > 10) {
+      if (filter && filter.length > 5) {
         setFilteredQuery([
           {
             name: { common: "Too many matches, specify another filter" },
@@ -81,66 +94,34 @@ const App = () => {
         setFilteredQuery(filter);
       }
     }
-  }
+  };
 
   return (
     <>
-      <div>
-        find countries:{" "}
-        <input type="text" onInput={handleUserInput} value={userInput} />
-      </div>
-      {filteredQuery && (
-        <ul>
-          {filteredQuery.map(
-            ({ name, cca3, capital, area, languages, flags }) => (
-              <li key={cca3}>
-                {name.common}{" "}
-                {capital && area && languages && flags ? (
-                  <button
-                    onClick={() =>
-                      setDisplayInfo({
-                        name,
-                        cca3,
-                        capital,
-                        area,
-                        languages,
-                        flags,
-                      })
-                    }
-                  >
-                    show
-                  </button>
-                ) : null}
-              </li>
-            )
-          )}
-        </ul>
-      )}
-      {displayInfo && (
-        <div key={displayInfo.cca3}>
-          {displayInfo.name.common && (
-            <>
-              <h1>{displayInfo.name.common}</h1>
-              <p>Capital: {displayInfo.capital}</p>
-              <p>Area: {displayInfo.area}</p>
-              <h3>Languages</h3>
-              <ul>
-                {Object.values(displayInfo.languages).map((language, index) => (
-                  <li key={index}>{language}</li>
-                ))}
-              </ul>
-              <img src={Object.values(displayInfo.flags)[0]} alt="flag" />
-            </>
-          )}
-          {displayInfo.temp && (
-            <>
-              <h1>Weather in {displayInfo.name.common}</h1>
-              <p>{(displayInfo.temp - 273.15).toFixed(1)} °C</p>
-              <p>wind : {displayInfo.wind}</p>
-            </>
-          )}
+      <div className="bg-white max-w-[90%] m-auto text-gray-900 relative">
+        <Header />
+        <div className="flex flex-col m-auto md:max-w-[500px] gap-3">
+          <img src={countryMap} alt="" className="w-32 md:w-48 m-auto opacity-70"  />
+          <h1 className="font-normal text-3xl text-center">
+            Find your country
+          </h1>
+          <input
+            type="text"
+            onInput={handleUserInput}
+            value={userInput}
+            placeholder="Search"
+            className=" p-2 px-4 rounded-xl bg-gray-100 focus:outline-none"
+          />
         </div>
-      )}
+        <CountryList
+          filteredQuery={filteredQuery}
+          setDisplayInfo={setDisplayInfo}
+        />
+        {displayInfo && <CountryDetail displayInfo={displayInfo} />}
+        {displayInfo && weatherInfo && (
+          <Weather displayInfo={displayInfo} weatherInfo={weatherInfo} />
+        )}
+      </div>
     </>
   );
 };
