@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "./App.css";
 import CountryList from "./components/CountryList";
 import CountryDetail from "./components/CountryDetail";
 import Weather from "./components/Weather";
@@ -13,6 +14,7 @@ const App = () => {
   const [filteredQuery, setFilteredQuery] = useState([]);
   const [displayInfo, setDisplayInfo] = useState(null);
   const [weatherInfo, setWeatherInfo] = useState(null);
+  const [isListVisible, setIsListVisible] = useState(true);
 
   // Country API call
   useEffect(() => {
@@ -70,10 +72,7 @@ const App = () => {
     const userQuery = e.target.value;
     setUserInput(userQuery);
     handleFilterQuery(userQuery);
-    if (userQuery === "") {
-      setDisplayInfo(null);
-      setWeatherInfo(null);
-    }
+    setIsListVisible(true);
   };
 
   const handleFilterQuery = (userQuery) => {
@@ -98,29 +97,37 @@ const App = () => {
 
   return (
     <>
-      <div className="bg-white max-w-[90%] m-auto text-gray-900 relative">
+      <div className="max-w-[90%] m-auto text-gray-900 relative">
         <Header />
         <div className="flex flex-col m-auto md:max-w-[500px] gap-3">
-          <img src={countryMap} alt="" className="w-32 md:w-48 m-auto opacity-70"  />
+          <img
+            src={countryMap}
+            alt=""
+            className="w-32 md:w-48 m-auto opacity-70"
+          />
           <h1 className="font-normal text-3xl text-center">
-            Find your country
+            Find country's detail
           </h1>
           <input
             type="text"
             onInput={handleUserInput}
             value={userInput}
             placeholder="Search"
-            className=" p-2 px-4 rounded-xl bg-gray-100 focus:outline-none"
+            className=" p-2 px-4 rounded bg-gray-100 focus:outline-none"
           />
         </div>
-        <CountryList
-          filteredQuery={filteredQuery}
-          setDisplayInfo={setDisplayInfo}
-        />
-        {displayInfo && <CountryDetail displayInfo={displayInfo} />}
-        {displayInfo && weatherInfo && (
-          <Weather displayInfo={displayInfo} weatherInfo={weatherInfo} />
-        )}
+        <div className="bg-white absolute left-0 right-0 max-w-[500px] m-auto rounded">
+          <CountryList
+            filteredQuery={filteredQuery}
+            setDisplayInfo={setDisplayInfo}
+            isListVisible={isListVisible}
+            setIsListVisible={setIsListVisible}
+          />
+          {displayInfo && <CountryDetail displayInfo={displayInfo} />}
+          {displayInfo && weatherInfo && (
+            <Weather displayInfo={displayInfo} weatherInfo={weatherInfo} />
+          )}
+        </div>
       </div>
     </>
   );
